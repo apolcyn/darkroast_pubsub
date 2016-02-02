@@ -1,0 +1,36 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<head>
+<meta http-equiv="no-cache">
+<meta http-equiv="Expires" content="-1">
+<meta http-equiv="Cache-Control" content="no-cache">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="{{ url_for('static', filename='map_visualization.js')}}"></script>
+<script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcoGfdgcAUPVCsUlGH8TbiSkJloT5NWfw&callback=initMap&libraries=drawing">
+</script>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Map visualization</title>
+</head>
+
+<body>
+	<h1>Edit the map</h1>
+	<h2>Here are the locations:</h2>
+	<button type="button" onclick="advanced();">Filter</button>
+	<input type="text" id="advancedParams"/>
+	<div id="locationUpdates">
+	</div>
+   <div id="map" style="height:800px;width:800px"></div>
+</body>
+</html>
+
+{% endblock %}
+
