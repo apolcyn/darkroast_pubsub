@@ -57,10 +57,9 @@ def show_map():
 @crud.route("/locations")
 def get_location_updates():
     unfiltered = model_datastore.get_all_location_updates()
-    filtered_trajectories = \
-    model_datastore.filter_trajectories(trajectories=unfiltered)
-    model_datastore.store_filtered_trajectories(filtered_trajectories=filtered_trajectories)
-    return jsonify(model_datastore.get_all_location_updates())
+    task_queue = tasks.get_trajectory_filter_queue()
+    task_queue.enqueue(tasks.filter_trajectories)
+    return jsonify(unfiltered)
 
 @crud.route("/filtered")
 def get_filtered_trajectories():

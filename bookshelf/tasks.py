@@ -19,6 +19,7 @@ from flask import current_app
 from gcloud import pubsub
 import psq
 import requests
+import model_datastore
 
 
 # [START get_books_queue]
@@ -32,8 +33,21 @@ def get_books_queue():
     # models.
     return psq.Queue(
         client, 'books', extra_context=current_app.app_context)
+    
+def get_trajectory_filter_queue():
+    client = pubsub.Client(
+        project=current_app.config['PROJECT_ID'])
+    
+    return psq.Queue(
+        client, 'trajectory_filter', extra_context=current_app.app_context)
 # [END get_books_queue]
 
+def filter_trajectories():
+    unfiltered = model_datastore.get_all_location_updates()
+    filtered_trajectories = \
+    model_datastore.filter_trajectories(trajectories=unfiltered)
+    model_datastore.store_filtered_trajectories(filtered_trajectories=filtered_trajectories)
+    return
 
 # [START process_book]
 def process_book(book_id):

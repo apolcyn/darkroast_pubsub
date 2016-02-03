@@ -27,6 +27,9 @@ app = bookshelf.create_app(config)
 # section to configure your queues to work with Flask.
 with app.app_context():
     books_queue = bookshelf.tasks.get_books_queue()
+    
+with app.app_context():
+    trajectory_filter_queue = bookshelf.tasks.get_trajectory_filter_queue()
 # [END books_queue]
 
 
