@@ -14,10 +14,9 @@
 
 from flask import current_app
 from gcloud import datastore
-
+from json import JSONEncoder
 
 builtin_list = list
-
 
 def init_app(app):
     pass
@@ -55,6 +54,25 @@ def list(limit=10, cursor=None):
     entities = builtin_list(map(from_datastore, entities))
     return entities, cursor if len(entities) == limit else None
 
+def get_all_locations_from_source_id(source_id):
+    out = []
+    ds = get_client()
+    query = ds.query(kind='LocationUpdate')
+    query.add_filter(property_name='sourceId', operator='=', value=source_id)
+    for update in sorted(map(from_datastore, query.fetch()), key=lambda x:x['updateTime']):
+        out.append({'lat': update['latitude'], 'lng': update['longitude']})
+    return out
+
+def get_all_location_updates():
+    out = {}
+    ds = get_client()
+    query = ds.query(kind='LocationUpdate')
+    query.add_filter(property_name='sourceId', operator='=', value=0)
+    location_update_roots = query.fetch()
+    for update_root in map(from_datastore, location_update_roots):
+        out[update_root['id']] = \
+        [get_all_locations_from_source_id(source_id=update_root['id'])]
+    return out
 
 def list_by_user(user_id, limit=10, cursor=None):
     ds = get_client()
@@ -68,7 +86,6 @@ def list_by_user(user_id, limit=10, cursor=None):
     entities, more_results, cursor = it.next_page()
     entities = builtin_list(map(from_datastore, entities))
     return entities, cursor if len(entities) == limit else None
-
 
 def read(id):
     ds = get_client()

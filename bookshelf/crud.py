@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from bookshelf import get_model, oauth2, storage, tasks
+from bookshelf import get_model, oauth2, storage, tasks, model_datastore
 from flask import Blueprint, current_app, redirect, render_template, request, \
-    session, url_for
+    session, url_for, jsonify
 
 
 crud = Blueprint('crud', __name__)
@@ -54,6 +54,9 @@ def list():
 def show_map():
     return render_template("seemap.html")
 
+@crud.route("/locations")
+def get_location_updates():
+    return jsonify(model_datastore.get_all_location_updates())
 
 @crud.route("/mine")
 @oauth2.required
