@@ -14,7 +14,8 @@
 
 from flask import current_app
 from gcloud import datastore
-from json import JSONEncoder
+import json
+from polypaths_planar_override import Point
 
 builtin_list = list
 
@@ -62,6 +63,32 @@ def get_all_locations_from_source_id(source_id):
     for update in sorted(map(from_datastore, query.fetch()), key=lambda x:x['updateTime']):
         out.append({'lat': update['latitude'], 'lng': update['longitude']})
     return out
+
+def filter_trajectories(trajectories):
+    out = []
+    for source_id in trajectories:
+        traj_list = trajectories[source_id]
+        for traj in traj_list:
+            out.append(map(lambda x: Point(x['lat'], x['lng']), traj))
+    return out
+
+def store_filtered_trajectories(filtered_trajectories):
+    ds = get_client()
+    out = []
+    for single_traj in filtered_trajectories:
+        out.append(map(lambda p: {'lat':p.x, 'lng':p.y}, single_traj))
+    key = ds.key('FilteredTrajectories')
+    entity = datastore.Entity(key=key, exclude_from_indexes=['trajectories'])
+    entity.update({'trajectories': json.dumps(out)})
+    ds.put(entity)
+    
+def get_filtered_trajectories():
+    ds = get_client()
+    query = ds.query(kind='FilteredTrajectories')
+    for entity in map(from_datastore, query.fetch(limit=1)):
+        trajectories = json.loads(entity['trajectories'])
+        break
+    return {'0': trajectories}
 
 def get_all_location_updates():
     out = {}
