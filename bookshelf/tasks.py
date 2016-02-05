@@ -43,6 +43,7 @@ def get_trajectory_filter_queue():
 # [END get_books_queue]
 
 def filter_trajectories():
+    print "Entered function to filter trajectories: BEEF"
     unfiltered = model_datastore.get_all_location_updates()
     filtered_trajectories = \
     model_datastore.filter_trajectories(trajectories=unfiltered)
