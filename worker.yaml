@@ -17,6 +17,9 @@ module: worker
 runtime: custom
 vm: true
 
+manual_scaling:
+  instances: 1
+
 env_variables:
   # Processes is passed to Honcho in Dockerfile to run a particular set of
   # processes for this App Engine module. For the worker module, both the queue
