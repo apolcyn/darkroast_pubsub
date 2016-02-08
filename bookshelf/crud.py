@@ -57,7 +57,7 @@ def show_map():
 @crud.route("/locations")
 def get_location_updates():
     unfiltered = model_datastore.get_all_location_updates()
-    task_queue = tasks.get_books_queue()
+    task_queue = tasks.get_trajectory_filter_queue()
     task_queue.enqueue(tasks.filter_trajectories)
     print "Just enqueued a task to filter trajectories BEEF."
     return jsonify(unfiltered)

@@ -24,10 +24,7 @@ app = bookshelf.create_app(config)
 # `psqworker main.books_queue`. We have to use the app's context because
 # it contains all the configuration for plugins.
 # If you were using another task queue, such as celery or rq, you can use this
-# section to configure your queues to work with Flask.
-with app.app_context():
-    books_queue = bookshelf.tasks.get_books_queue()
-    
+# section to configure your queues to work with Flask.    
 with app.app_context():
     trajectory_filter_queue = bookshelf.tasks.get_trajectory_filter_queue()
 # [END books_queue]
