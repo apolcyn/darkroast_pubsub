@@ -57,6 +57,8 @@ def show_map():
 @crud.route("/locations")
 def get_location_updates():
     unfiltered = model_datastore.get_all_location_updates()
+    tasks.upload_clusters()
+    tasks.upload_partitioned_trajectories()
     task_queue = tasks.get_trajectory_filter_queue()
     task_queue.enqueue(tasks.filter_trajectories)
     print "Just enqueued a task to filter trajectories BEEF."
@@ -66,6 +68,16 @@ def get_location_updates():
 def get_filtered_trajectories():
     filtered = model_datastore.get_filtered_trajectories()
     return jsonify(filtered)
+
+@crud.route("/partitioned")
+def show_partitioned_trajectories():
+    traj = model_datastore.get_partitioned_trajectories()
+    return jsonify({'trajectories': traj})
+
+@crud.route("/clusters")
+def show_clusters():
+    clusters = model_datastore.get_clusters()
+    return jsonify({'clusters': clusters})
 
 @crud.route("/mine")
 @oauth2.required
