@@ -20,6 +20,9 @@ from gcloud import pubsub
 import psq
 import requests
 import model_datastore
+from my_planar_override.line import LineSegment
+from my_planar_override import Point
+from bookshelf.model_datastore import store_partitioned_trajectories
 
 
 # [START get_books_queue]
@@ -49,6 +52,17 @@ def filter_trajectories():
     model_datastore.filter_trajectories(trajectories=unfiltered)
     model_datastore.store_filtered_trajectories(filtered_trajectories=filtered_trajectories)
     return
+
+def upload_partitioned_trajectories():
+    def create_line_seg(start, end):
+        return LineSegment.from_points(Point(start[0], start[1]), Point(end[0], end[1]))
+    
+    trajs = [create_line_seg((35.3015897, -120.6630498), \
+                             (35.3009616, -120.6625416)), \
+                             create_line_seg((35.3002847, -120.6608752), \
+                                             (35.2998518, -120.6604413))]
+    store_partitioned_trajectories(trajs)
+        
 
 # [START process_book]
 def process_book(book_id):

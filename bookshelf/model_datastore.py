@@ -64,13 +64,22 @@ def get_all_locations_from_source_id(source_id):
         out.append({'lat': update['latitude'], 'lng': update['longitude']})
     return out
 
-def filter_trajectories(trajectories):
+def store_partitioned_trajectories(partitioned_line_segs, key_id=0):
+    ds = get_client()
     out = []
-    for source_id in trajectories:
-        traj_list = trajectories[source_id]
-        for traj in traj_list:
-            out.append(map(lambda x: Point(x['lat'], x['lng']), traj))
-    return out
+    for segment in partitioned_line_segs:
+        out.append({'lat': segment.start.x, 'lng': segment.start.y})
+        out.append({'lat': segment.end.x, 'lng': segment.end.y})
+    key = ds.key('PartitionedTrajectories', key_id)
+    entity = datastore.Entity(key=key, exclude_from_indexes=['segments'])
+    entity.update({'segments': json.dumps(out)})
+    ds.put(entity)
+    
+def get_partitioned_trajectories(key_id=0):
+    ds = get_client()
+    key = ds.key('PartitionedTrajectories', key_id)
+    results = from_datastore(ds.get(key))
+    return json.loads(results['segments'])
 
 def store_filtered_trajectories(filtered_trajectories):
     ds = get_client()
