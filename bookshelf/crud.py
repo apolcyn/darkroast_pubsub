@@ -74,10 +74,10 @@ def run_traclus():
     
     tasks.run_the_whole_enchilada(epsilon=epsilon, \
                                   min_neighbors=min_neighbors, \
-                                  min_num_trajectories_in_clusters=min_num_trajectories_in_cluster, \
+                                  min_num_trajectories_in_cluster=min_num_trajectories_in_cluster, \
                                   min_vertical_lines=min_vertical_lines, \
                                   min_prev_dist=min_prev_dist)
-    return
+    return "Just ran traclus"
 
 @crud.route("/filtered")
 def get_filtered_trajectories():

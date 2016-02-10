@@ -27,6 +27,8 @@ PARTITIONED_TRAJ_TABLE = CLUSTERS_TABLE
 PARTITION_TRAJ_DEFAULT_ID = 2
 PARTITION_TRAJ_ATTR_NAME = 'segments'
 
+RESULTS_DEFAULT_ID = 3
+
 def init_app(app):
     pass
 
@@ -75,6 +77,10 @@ def get_all_locations_from_source_id(source_id):
 def store_partitioned_trajectories(partitioned_line_segs, key_id=PARTITION_TRAJ_DEFAULT_ID):
     ds = get_client()
     out = []
+    if len(partitioned_line_segs) == 0:
+        raise ValueError("length of partitioned line segs is " + \
+                         str(len(partitioned_line_segs)))
+        
     for segment in partitioned_line_segs:
         out.append([{'lat': segment.start.x, 'lng': segment.start.y}, \
                     {'lat': segment.end.x, 'lng': segment.end.y}])
@@ -91,17 +97,20 @@ def filter_trajectories(trajectories):
             out.append(map(lambda x: Point(x['lat'], x['lng']), traj))
     return out
     
-def get_partitioned_trajectories(key_id=1):
+def get_partitioned_trajectories(key_id=PARTITION_TRAJ_DEFAULT_ID):
     ds = get_client()
-    key = ds.key('PartitionedTrajectories', key_id)
+    key = ds.key(PARTITIONED_TRAJ_TABLE, key_id)
     results = from_datastore(ds.get(key))
-    return json.loads(results['segments'])
+    return json.loads(results[PARTITION_TRAJ_ATTR_NAME])
 
 def store_clusters(clusters, key_id=CLUSTERS_DEFAULT_ID):
     ds = get_client()
     key = ds.key(CLUSTERS_TABLE, key_id)
     entity = datastore.Entity(key=key, exclude_from_indexes=['clusters'])
     out = []
+    if len(clusters) == 0:
+        raise ValueError("lenth of clusters is " + str(len(clusters)))
+    
     for single_cluster in clusters:
         in_cluster_list = []
         for seg in map(lambda x: x.line_segment, single_cluster.get_trajectory_line_segments()):
@@ -117,12 +126,12 @@ def get_clusters(key_id=CLUSTERS_DEFAULT_ID):
     results = from_datastore(ds.get(key))
     return json.loads(results[CLUSTERS_ATTR_NAME])
 
-def store_filtered_trajectories(filtered_trajectories):
+def store_filtered_trajectories(filtered_trajectories, key_id=RESULTS_DEFAULT_ID):
     ds = get_client()
     out = []
     for single_traj in filtered_trajectories:
         out.append(map(lambda p: {'lat':p.x, 'lng':p.y}, single_traj))
-    key = ds.key('FilteredTrajectories')
+    key = ds.key('FilteredTrajectories', key_id)
     entity = datastore.Entity(key=key, exclude_from_indexes=['trajectories'])
     entity.update({'trajectories': json.dumps(out)})
     ds.put(entity)

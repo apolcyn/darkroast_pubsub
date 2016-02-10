@@ -57,21 +57,49 @@ def filter_trajectories():
 def create_line_seg(start, end):
     return LineSegment.from_points([Point(start[0], start[1]), Point(end[0], end[1])])
 
-def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_clusters, \
+def remove_successive_points_at_same_spots(point_list):
+    p_iter = iter(point_list)
+    prev = p_iter.next()
+    out = [prev]
+    
+    for p in p_iter:
+        if prev.x == p.x and prev.y == p.y:
+            print "removing same point in sequential spot"
+        else:
+            out.append(p)
+    return out
+
+def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_cluster, \
                             min_vertical_lines, min_prev_dist):
     raw_trajectories = model_datastore.get_all_location_updates()
-    def dict_list_to_point_list(dict_list):
-        return map(lambda x: Point(x['lat'], x['lng']), dict_list)
     
-    all_raw_point_lists = map(dict_list_to_point_list, raw_trajectories.values())
+    print "HERE ARE THE RAW TRAJECTORIES: \n" + str(raw_trajectories)
+    
+    def dict_list_to_point_list(dict_list):
+        return map(lambda x: Point(x['lat'], x['lng']), dict_list[0])
+    
+    def remove_small_trajectories(all_trajectory_lists):
+        return filter(lambda x: len(x[0]) >= 2, all_trajectory_lists)
+    
+    all_raw_point_lists = map(remove_successive_points_at_same_spots, map(dict_list_to_point_list, \
+                              remove_small_trajectories(raw_trajectories.values())))
+    
+    if len(all_raw_point_lists) == 0:
+        raise ValueError("length of all raw point lists is " + \
+                         str(len(all_raw_point_lists)))
+        
     result_trajectories = the_whole_enchilada(point_iterable_list=all_raw_point_lists, \
                         epsilon=epsilon, \
                         min_neighbors=min_neighbors, \
-                        min_num_trajectories_in_clusters=min_num_trajectories_in_clusters, \
+                        min_num_trajectories_in_cluster=min_num_trajectories_in_cluster, \
                         min_vertical_lines=min_vertical_lines, \
                         min_prev_dist=min_prev_dist, \
                         partitioned_points_hook=model_datastore.store_partitioned_trajectories, \
                         clusters_hook=model_datastore.store_clusters)
+    
+    if len(result_trajectories) < 2:
+        raise ValueError("length of resulting trajectories is " + str(len(result_trajectories)))
+    
     model_datastore.store_filtered_trajectories(filtered_trajectories=result_trajectories)
 
 def upload_partitioned_trajectories(partitioned_trajectories):
