@@ -64,6 +64,21 @@ def get_location_updates():
     print "Just enqueued a task to filter trajectories BEEF."
     return jsonify(unfiltered)
 
+@crud.route("/run_traclus")
+def run_traclus():
+    epsilon = request.args.get('epsilon')
+    min_neighbors = request.args.get('min_neighbors')
+    min_num_trajectories_in_cluster = request.args.get('min_num_trajectories_in_cluster')
+    min_vertical_lines = request.args.get('min_vertical_lines')
+    min_prev_dist = request.args.get('min_prev_dist')
+    
+    tasks.run_the_whole_enchilada(epsilon=epsilon, \
+                                  min_neighbors=min_neighbors, \
+                                  min_num_trajectories_in_clusters=min_num_trajectories_in_cluster, \
+                                  min_vertical_lines=min_vertical_lines, \
+                                  min_prev_dist=min_prev_dist)
+    return
+
 @crud.route("/filtered")
 def get_filtered_trajectories():
     filtered = model_datastore.get_filtered_trajectories()

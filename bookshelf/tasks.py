@@ -23,6 +23,7 @@ import model_datastore
 from polypaths_planar_override import LineSegment
 from polypaths_planar_override import Point
 from bookshelf.model_datastore import store_partitioned_trajectories
+from pathclustering.coordination import the_whole_enchilada
 
 
 # [START get_books_queue]
@@ -56,7 +57,24 @@ def filter_trajectories():
 def create_line_seg(start, end):
     return LineSegment.from_points([Point(start[0], start[1]), Point(end[0], end[1])])
 
-def upload_partitioned_trajectories():
+def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_clusters, \
+                            min_vertical_lines, min_prev_dist):
+    raw_trajectories = model_datastore.get_all_location_updates()
+    def dict_list_to_point_list(dict_list):
+        return map(lambda x: Point(x['lat'], x['lng']), dict_list)
+    
+    all_raw_point_lists = map(dict_list_to_point_list, raw_trajectories.values())
+    result_trajectories = the_whole_enchilada(point_iterable_list=all_raw_point_lists, \
+                        epsilon=epsilon, \
+                        min_neighbors=min_neighbors, \
+                        min_num_trajectories_in_clusters=min_num_trajectories_in_clusters, \
+                        min_vertical_lines=min_vertical_lines, \
+                        min_prev_dist=min_prev_dist, \
+                        partitioned_points_hook=model_datastore.store_partitioned_trajectories, \
+                        clusters_hook=model_datastore.store_clusters)
+    model_datastore.store_filtered_trajectories(filtered_trajectories=result_trajectories)
+
+def upload_partitioned_trajectories(partitioned_trajectories):
     trajs = [create_line_seg((35.3015897, -120.6630498), \
                              (35.3009616, -120.6625416)), \
                              create_line_seg((35.3002847, -120.6608752), \
