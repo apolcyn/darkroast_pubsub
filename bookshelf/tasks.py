@@ -23,7 +23,7 @@ import model_datastore
 from polypaths_planar_override import LineSegment
 from polypaths_planar_override import Point
 from bookshelf.model_datastore import store_partitioned_trajectories
-from pathclustering.coordination import the_whole_enchilada
+from traclus_impl.coordination import the_whole_enchilada
 
 
 # [START get_books_queue]

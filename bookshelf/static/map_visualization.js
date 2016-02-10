@@ -12,6 +12,25 @@ function initMap() {
 	displayPoints();
 }
 
+function runTraclus() {
+	var epsilon = $("#epsilon").val();
+	var min_neighbors = $("#min_neighbors").val();
+	var min_num_trajectories_in_clusters = $("#min_num_trajectories_in_clusters").val();
+	var min_vertical_lines = $("#min_vertical_lines").val();
+	var min_prev_dist = $(#"min_prev_dist").val();
+	
+	var url = "/books/run_traclus?{0}={1}&{2}={3}&{4}={5}&{6}={7}&{8}={9}".format(
+			"epsilon", epsilon,
+			"min_neighbors", min_neighbors, 
+			"min_num_trajectories_in_clusters", min_num_trajectories_in_clusters, 
+			"min_vertical_lines", min_vertical_lines, 
+			"min_prev_dist", min_prev_dist);
+	
+	$.get(url, function(data, status) {
+		alert("Ran traclus. Server response: " + status);
+	});
+}
+
 function trueMod(a, b) {
 	var temp = a % b;
 	return temp < 0 ? temp + b : temp;
