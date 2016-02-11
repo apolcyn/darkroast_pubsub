@@ -15,18 +15,26 @@ function initMap() {
 function runTraclus() {
 	var epsilon = $("#epsilon").val();
 	var min_neighbors = $("#min_neighbors").val();
-	var min_num_trajectories_in_clusters = $("#min_num_trajectories_in_clusters").val();
+	var min_num_trajectories_in_cluster = $("#min_num_trajectories_in_cluster").val();
 	var min_vertical_lines = $("#min_vertical_lines").val();
 	var min_prev_dist = $("#min_prev_dist").val();
 	
 	var url = "/books/run_traclus?epsilon=" + epsilon
 	 + "&min_neighbors=" + min_neighbors
-	 + "&min_num_trajectories_in_clusters=" + min_num_trajectories_in_clusters
+	 + "&min_num_trajectories_in_cluster=" + min_num_trajectories_in_cluster
 	 + "&min_vertical_lines=" + min_vertical_lines
 	 + "&min_prev_dist=" + min_prev_dist;
 	
 	$.get(url, function(data, status) {
 		alert("Ran traclus. Server response: " + status);
+	});
+}
+
+function showFiltered() {
+	var url = "/books/filtered";
+	
+	$.getJSON(url, function(data, status) {
+		displayTrajectories(data['trajectories']);
 	});
 }
 
@@ -47,7 +55,7 @@ function showPartitioned() {
 
 	$.getJSON(url, function(data) {
 		$("partitions").innerHTML = data;
-		displayPartitionedTrajectories(data['trajectories']);
+		displayTrajectories(data['trajectories']);
 	});
 }
 
@@ -107,26 +115,29 @@ function colorIterator() {
 	};
 }
 
+function displayTrajectories(trajectories) {
+	var colorIter = colorIterator();
+	for(var trajIndex in trajectories) {
+		color = colorIter();
+		var displayLine = new google.maps.Polyline({
+			path: trajectories[trajIndex], 
+			strokeColor: color
+		});
+		displayLine.setMap(map);
+	}
+}
+
 function displayClusters(clusters) {
 	var colorIter = colorIterator()
 	for ( var clusterIndex in clusters) {
-		color = colorIter()
+		color = colorIter();
 		for ( var lineIndex in clusters[clusterIndex]) {
 			var displayLine = new google.maps.Polyline({
 				path : clusters[clusterIndex][lineIndex],
 				strokeColor : color
-			})
+			});
 			displayLine.setMap(map)
 		}
-	}
-}
-
-function displayPartitionedTrajectories(trajectories) {
-	for ( var index in trajectories) {
-		var displayLine = new google.maps.Polyline({
-			path : trajectories[index]
-		})
-		displayLine.setMap(map)
 	}
 }
 

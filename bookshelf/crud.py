@@ -57,20 +57,20 @@ def show_map():
 @crud.route("/locations")
 def get_location_updates():
     unfiltered = model_datastore.get_all_location_updates()
-    tasks.upload_clusters()
-    tasks.upload_partitioned_trajectories()
-    task_queue = tasks.get_trajectory_filter_queue()
-    task_queue.enqueue(tasks.filter_trajectories)
+    #tasks.upload_clusters()
+    #tasks.upload_partitioned_trajectories()
+    #task_queue = tasks.get_trajectory_filter_queue()
+    #task_queue.enqueue(tasks.filter_trajectories)
     print "Just enqueued a task to filter trajectories BEEF."
     return jsonify(unfiltered)
 
 @crud.route("/run_traclus")
 def run_traclus():
-    epsilon = request.args.get('epsilon')
-    min_neighbors = request.args.get('min_neighbors')
-    min_num_trajectories_in_cluster = request.args.get('min_num_trajectories_in_cluster')
-    min_vertical_lines = request.args.get('min_vertical_lines')
-    min_prev_dist = request.args.get('min_prev_dist')
+    epsilon = float(request.args.get('epsilon'))
+    min_neighbors = int(request.args.get('min_neighbors'))
+    min_num_trajectories_in_cluster = int(request.args.get('min_num_trajectories_in_cluster'))
+    min_vertical_lines = int(request.args.get('min_vertical_lines'))
+    min_prev_dist = float(request.args.get('min_prev_dist'))
     
     tasks.run_the_whole_enchilada(epsilon=epsilon, \
                                   min_neighbors=min_neighbors, \
@@ -82,7 +82,7 @@ def run_traclus():
 @crud.route("/filtered")
 def get_filtered_trajectories():
     filtered = model_datastore.get_filtered_trajectories()
-    return jsonify(filtered)
+    return jsonify({'trajectories':filtered})
 
 @crud.route("/partitioned")
 def show_partitioned_trajectories():

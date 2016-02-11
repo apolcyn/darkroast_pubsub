@@ -27,6 +27,8 @@ PARTITIONED_TRAJ_TABLE = CLUSTERS_TABLE
 PARTITION_TRAJ_DEFAULT_ID = 2
 PARTITION_TRAJ_ATTR_NAME = 'segments'
 
+RESULTS_TABLE_NAME = 'FilteredTrajectories'
+RESULTS_ATTR_NAME = 'trajectories'
 RESULTS_DEFAULT_ID = 3
 
 def init_app(app):
@@ -81,7 +83,7 @@ def store_partitioned_trajectories(partitioned_line_segs, key_id=PARTITION_TRAJ_
         raise ValueError("length of partitioned line segs is " + \
                          str(len(partitioned_line_segs)))
         
-    for segment in partitioned_line_segs:
+    for segment in map(lambda t: t.line_segment, partitioned_line_segs):
         out.append([{'lat': segment.start.x, 'lng': segment.start.y}, \
                     {'lat': segment.end.x, 'lng': segment.end.y}])
     key = ds.key(PARTITIONED_TRAJ_TABLE, key_id)
@@ -109,7 +111,8 @@ def store_clusters(clusters, key_id=CLUSTERS_DEFAULT_ID):
     entity = datastore.Entity(key=key, exclude_from_indexes=['clusters'])
     out = []
     if len(clusters) == 0:
-        raise ValueError("lenth of clusters is " + str(len(clusters)))
+        return
+        #raise ValueError("lenth of clusters is " + str(len(clusters)))
     
     for single_cluster in clusters:
         in_cluster_list = []
@@ -131,18 +134,16 @@ def store_filtered_trajectories(filtered_trajectories, key_id=RESULTS_DEFAULT_ID
     out = []
     for single_traj in filtered_trajectories:
         out.append(map(lambda p: {'lat':p.x, 'lng':p.y}, single_traj))
-    key = ds.key('FilteredTrajectories', key_id)
-    entity = datastore.Entity(key=key, exclude_from_indexes=['trajectories'])
-    entity.update({'trajectories': json.dumps(out)})
+    key = ds.key(RESULTS_TABLE_NAME, key_id)
+    entity = datastore.Entity(key=key, exclude_from_indexes=[RESULTS_ATTR_NAME])
+    entity.update({RESULTS_ATTR_NAME: json.dumps(out)})
     ds.put(entity)
     
-def get_filtered_trajectories():
+def get_filtered_trajectories(key_id=RESULTS_DEFAULT_ID):
     ds = get_client()
-    query = ds.query(kind='FilteredTrajectories')
-    for entity in map(from_datastore, query.fetch(limit=1)):
-        trajectories = json.loads(entity['trajectories'])
-        break
-    return {'0': trajectories}
+    key = ds.key(RESULTS_TABLE_NAME, key_id)
+    trajectories = from_datastore(ds.get(key))
+    return json.loads(trajectories[RESULTS_ATTR_NAME])
 
 def get_all_location_updates():
     out = {}

@@ -24,6 +24,10 @@ from polypaths_planar_override import LineSegment
 from polypaths_planar_override import Point
 from bookshelf.model_datastore import store_partitioned_trajectories
 from traclus_impl.coordination import the_whole_enchilada
+import polypaths_planar_override
+import math
+
+COORDINATE_SCALER = 1.0
 
 
 # [START get_books_queue]
@@ -69,25 +73,75 @@ def remove_successive_points_at_same_spots(point_list):
             out.append(p)
     return out
 
+def remove_points_too_close(point_list):
+    p_iter = iter(point_list)
+    prev = p_iter.next()
+    out = [prev]
+    
+    for p in p_iter:
+        if (p - prev).length2 > 0.0:
+            out.append(p)
+            prev = p
+            
+    return out
+            
+
 def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_cluster, \
                             min_vertical_lines, min_prev_dist):
     raw_trajectories = model_datastore.get_all_location_updates()
     
     print "HERE ARE THE RAW TRAJECTORIES: \n" + str(raw_trajectories)
-    
+        
     def dict_list_to_point_list(dict_list):
-        return map(lambda x: Point(x['lat'], x['lng']), dict_list[0])
+        return map(lambda x: Point(x['lat'], x['lng']), dict_list)
     
-    def remove_small_trajectories(all_trajectory_lists):
-        return filter(lambda x: len(x[0]) >= 2, all_trajectory_lists)
+    normal_traj_lists = map(lambda x: x[0], raw_trajectories.values())
     
-    all_raw_point_lists = map(remove_successive_points_at_same_spots, map(dict_list_to_point_list, \
-                              remove_small_trajectories(raw_trajectories.values())))
+    print "\n\nHERE ARE THE NORMALIZED FORMAT TRAJECTORIES: \n" + str(normal_traj_lists)
+    print "\n LENGTH OF NORMAL TRAJ LIST IS " + str(len(normal_traj_lists))
     
-    if len(all_raw_point_lists) == 0:
+    all_raw_point_lists = []
+    for dict_list in normal_traj_lists:
+        print "here is what we're trying to go from dict list to point list on: " \
+         + str(dict_list)
+        point_list = dict_list_to_point_list(dict_list)
+        if len(point_list) < 2:
+            continue
+        traj_list = remove_successive_points_at_same_spots(point_list)
+        if len(traj_list) >= 2:
+            all_raw_point_lists.append(traj_list)
+        
+    if len(all_raw_point_lists) <= 1:
         raise ValueError("length of all raw point lists is " + \
                          str(len(all_raw_point_lists)))
         
+    def get_min_dist():
+        min_dist = 1000
+        for traj in all_raw_point_lists:
+            p_iter = iter(traj)
+            prev = p_iter.next()
+            for p in p_iter:
+                min_dist = min(min_dist, prev.distance_to(p))
+        return min_dist
+            
+    print "min dist is " + str(get_min_dist())
+    
+    polypaths_planar_override.set_epsilon(0.000000001)
+    
+    def get_scaled_trajs(traj_list, scale):
+        def scale_coordinates(point_list):
+            return map(lambda p: Point(p.x * scale, p.y * scale), point_list)
+        return map(scale_coordinates, traj_list)
+        
+    all_raw_point_lists = get_scaled_trajs(all_raw_point_lists, COORDINATE_SCALER)
+    
+    all_raw_point_lists = map(remove_points_too_close, all_raw_point_lists)
+    
+    all_raw_point_lists = filter(lambda x: len(x) >= 2, all_raw_point_lists)
+    
+    print "HERE ARE THE POINT LISTS WERE PASSING IN TO TRACLUS: " + str(all_raw_point_lists)
+        
+    print "ABOUT to run the whole enchilada with a min neighbors of " + str(min_neighbors)
     result_trajectories = the_whole_enchilada(point_iterable_list=all_raw_point_lists, \
                         epsilon=epsilon, \
                         min_neighbors=min_neighbors, \
@@ -97,7 +151,7 @@ def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_clus
                         partitioned_points_hook=model_datastore.store_partitioned_trajectories, \
                         clusters_hook=model_datastore.store_clusters)
     
-    if len(result_trajectories) < 2:
+    if len(result_trajectories) == 0:
         raise ValueError("length of resulting trajectories is " + str(len(result_trajectories)))
     
     model_datastore.store_filtered_trajectories(filtered_trajectories=result_trajectories)
