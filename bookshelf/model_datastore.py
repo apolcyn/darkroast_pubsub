@@ -31,6 +31,10 @@ RESULTS_TABLE_NAME = 'FilteredTrajectories'
 RESULTS_ATTR_NAME = 'trajectories'
 RESULTS_DEFAULT_ID = 3
 
+NEIGHBOR_COUNTS_TABLE = 'NeighborCounts'
+NEIGHBOR_COUNTS_DEFAULT_ID = 1
+NEIGHBOR_COUNTS_ATTR_NAME = 'neighbor_counts'
+
 def init_app(app):
     pass
 
@@ -108,7 +112,7 @@ def get_partitioned_trajectories(key_id=PARTITION_TRAJ_DEFAULT_ID):
 def store_clusters(clusters, key_id=CLUSTERS_DEFAULT_ID):
     ds = get_client()
     key = ds.key(CLUSTERS_TABLE, key_id)
-    entity = datastore.Entity(key=key, exclude_from_indexes=['clusters'])
+    entity = datastore.Entity(key=key, exclude_from_indexes=[CLUSTERS_ATTR_NAME])
     out = []
     if len(clusters) == 0:
         return
@@ -122,6 +126,20 @@ def store_clusters(clusters, key_id=CLUSTERS_DEFAULT_ID):
         out.append(in_cluster_list)
     entity.update({CLUSTERS_ATTR_NAME: json.dumps(out)})
     ds.put(entity)
+    
+def store_line_segment_neighbor_counts(line_segments, key_id=NEIGHBOR_COUNTS_DEFAULT_ID):
+    ds = get_client()
+    key = ds.key(NEIGHBOR_COUNTS_TABLE, key_id)
+    entity = datastore.Entity(key=key, exclude_from_indexes=[NEIGHBOR_COUNTS_ATTR_NAME])
+    out = map(lambda seg: seg.get_num_neighbors(), line_segments)
+    entity.update({NEIGHBOR_COUNTS_ATTR_NAME: json.dumps(out)})
+    ds.put(entity)
+    
+def get_line_segment_neighbor_counts(key_id=NEIGHBOR_COUNTS_DEFAULT_ID):
+    ds = get_client()
+    key = ds.key(NEIGHBOR_COUNTS_TABLE, NEIGHBOR_COUNTS_DEFAULT_ID)
+    results = from_datastore(ds.get(key))
+    return json.loads(results[NEIGHBOR_COUNTS_ATTR_NAME])
     
 def get_clusters(key_id=CLUSTERS_DEFAULT_ID):
     ds = get_client()
