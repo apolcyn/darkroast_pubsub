@@ -155,32 +155,7 @@ def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_clus
         raise ValueError("length of resulting trajectories is " + str(len(result_trajectories)))
     
     model_datastore.store_filtered_trajectories(filtered_trajectories=result_trajectories)
-
-def upload_partitioned_trajectories(partitioned_trajectories):
-    trajs = [create_line_seg((35.3015897, -120.6630498), \
-                             (35.3009616, -120.6625416)), \
-                             create_line_seg((35.3002847, -120.6608752), \
-                                             (35.2998518, -120.6604413))]
-    model_datastore.store_partitioned_trajectories(trajs)
-    
-def upload_clusters():
-    class MockTrajSeg:
-        def __init__(self, line_seg):
-            self.line_segment = line_seg
-    class MockCluster:
-        def __init__(self, point_list):
-            self.segs = point_list
-        def get_trajectory_line_segments(self):
-            return self.segs
         
-    segs_a = [create_line_seg((35.3015897, -120.6630498), \
-                             (35.3009616, -120.6625416)), \
-                             create_line_seg((35.3002847, -120.6608752), \
-                                             (35.2998518, -120.6604413))]
-    traj_segs = map(lambda x: MockTrajSeg(x), segs_a)
-    model_datastore.store_clusters([MockCluster(traj_segs)])
-        
-
 # [START process_book]
 def process_book(book_id):
     """

@@ -118,7 +118,7 @@ function colorIterator() {
 function displayTrajectories(trajectories) {
 	var colorIter = colorIterator();
 	for(var trajIndex in trajectories) {
-		color = colorIter();
+		var color = colorIter();
 		var displayLine = new google.maps.Polyline({
 			path: trajectories[trajIndex], 
 			strokeColor: color
@@ -130,7 +130,7 @@ function displayTrajectories(trajectories) {
 function displayClusters(clusters) {
 	var colorIter = colorIterator()
 	for ( var clusterIndex in clusters) {
-		color = colorIter();
+		var color = colorIter();
 		for ( var lineIndex in clusters[clusterIndex]) {
 			var displayLine = new google.maps.Polyline({
 				path : clusters[clusterIndex][lineIndex],
