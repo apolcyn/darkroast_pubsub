@@ -1,4 +1,5 @@
 var map;
+var poly;
 
 function initMap() {
 	map = new google.maps.Map(document.getElementById('map'), {
@@ -9,7 +10,31 @@ function initMap() {
 		zoom : 17,
 		mapTypeId : google.maps.MapTypeId.ROAD
 	});
-	displayPoints();
+	poly = new google.maps.Polyline({
+		strokeColor : '#000000',
+		strokeOpacity : 1.0,
+		strokeWeight : 3
+	});
+	poly.setMap(map);
+
+	// Add a listener for the click event
+	map.addListener('click', addLatLng);
+}
+
+//Handles click events on a map, and adds a new point to the Polyline.
+function addLatLng(event) {
+  var path = poly.getPath();
+
+  // Because path is an MVCArray, we can simply append a new coordinate
+  // and it will automatically appear.
+  path.push(event.latLng);
+
+  // Add a new marker at the new plotted point on the polyline.
+  var marker = new google.maps.Marker({
+    position: event.latLng,
+    title: '#' + path.getLength(),
+    map: map
+  });
 }
 
 function showRawTrajectories() {
@@ -22,29 +47,29 @@ function runSimulatedAnnealing() {
 	var epsilon = $("#simulated_annealing_epsilon").val();
 	var num_steps = $("#num_steps").val();
 	var max_epsilon_jump = $("#max_epsilon_jump").val();
-	
-	var url = "/books/simulated_annealing?epsilon=" + epsilon
-	 + "&num_steps=" + num_steps
-	 + "&max_epsilon_jump=" + max_epsilon_jump;
-	
+
+	var url = "/books/simulated_annealing?epsilon=" + epsilon + "&num_steps="
+			+ num_steps + "&max_epsilon_jump=" + max_epsilon_jump;
+
 	$.get(url, function(data, status) {
-		alert("Ran Simulated Annealing. Server response: " + data['best_epsilon']);
+		alert("Ran Simulated Annealing. Server response: "
+				+ data['best_epsilon']);
 	});
 }
 
 function runTraclus() {
 	var epsilon = $("#epsilon").val();
 	var min_neighbors = $("#min_neighbors").val();
-	var min_num_trajectories_in_cluster = $("#min_num_trajectories_in_cluster").val();
+	var min_num_trajectories_in_cluster = $("#min_num_trajectories_in_cluster")
+			.val();
 	var min_vertical_lines = $("#min_vertical_lines").val();
 	var min_prev_dist = $("#min_prev_dist").val();
-	
-	var url = "/books/run_traclus?epsilon=" + epsilon
-	 + "&min_neighbors=" + min_neighbors
-	 + "&min_num_trajectories_in_cluster=" + min_num_trajectories_in_cluster
-	 + "&min_vertical_lines=" + min_vertical_lines
-	 + "&min_prev_dist=" + min_prev_dist;
-	
+
+	var url = "/books/run_traclus?epsilon=" + epsilon + "&min_neighbors="
+			+ min_neighbors + "&min_num_trajectories_in_cluster="
+			+ min_num_trajectories_in_cluster + "&min_vertical_lines="
+			+ min_vertical_lines + "&min_prev_dist=" + min_prev_dist;
+
 	$.get(url, function(data, status) {
 		alert("Ran traclus. Server response: " + status);
 	});
@@ -52,7 +77,7 @@ function runTraclus() {
 
 function showFiltered() {
 	var url = "/books/filtered";
-	
+
 	$.getJSON(url, function(data, status) {
 		displayTrajectories(data['trajectories']);
 	});
@@ -137,11 +162,11 @@ function colorIterator() {
 
 function displayTrajectories(trajectories) {
 	var colorIter = colorIterator();
-	for(var trajIndex in trajectories) {
+	for ( var trajIndex in trajectories) {
 		var color = colorIter();
 		var displayLine = new google.maps.Polyline({
-			path: trajectories[trajIndex], 
-			strokeColor: color
+			path : trajectories[trajIndex],
+			strokeColor : color
 		});
 		displayLine.setMap(map);
 	}

@@ -54,6 +54,21 @@ def list():
 def show_map():
     return render_template("seemap.html")
 
+@crud.route("/migrate_locations")
+def migrate_locations():
+    all_locations = model_datastore.get_all_location_updates()
+    for update_list in all_locations.values():
+        traj = update_list[0]
+        if len(traj) > 1:
+            model_datastore.store_new_trajectory_update(new_trajectory=traj, \
+                                                        drawn_by_hand=False)
+    return "Stored em"
+
+@crud.route("/raw_trajectories")
+def get_raw_trajectories():
+    raw_traj = model_datastore.get_raw_trajectories()
+    return jsonify({'trajectories': raw_traj})
+
 @crud.route("/locations")
 def get_location_updates():
     unfiltered = model_datastore.get_all_location_updates()

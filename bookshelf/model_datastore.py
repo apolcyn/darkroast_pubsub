@@ -35,6 +35,11 @@ NEIGHBOR_COUNTS_TABLE = 'NeighborCounts'
 NEIGHBOR_COUNTS_DEFAULT_ID = 1
 NEIGHBOR_COUNTS_ATTR_NAME = 'neighbor_counts'
 
+RAW_TRAJECTORY_TABLE = 'RawTrajectoryTable'
+RAW_TRAJECTORY_TRAJ_ATTR_NAME = 'trajectory'
+RAW_TRAJECTORY_DRAWN_ATTR_NAME = 'drawn'
+RAW_TRAHECTORY_DEFAULT_ID = 1
+
 def init_app(app):
     pass
 
@@ -70,6 +75,24 @@ def list(limit=10, cursor=None):
     entities, more_results, cursor = it.next_page()
     entities = builtin_list(map(from_datastore, entities))
     return entities, cursor if len(entities) == limit else None
+
+def store_new_trajectory_update(new_trajectory, drawn_by_hand):
+    ds = get_client()
+    key = ds.key(RAW_TRAJECTORY_TABLE)
+    entity = datastore.Entity(key=key, \
+                              exclude_from_indexes=[RAW_TRAJECTORY_TRAJ_ATTR_NAME, \
+                                                    RAW_TRAJECTORY_DRAWN_ATTR_NAME])
+    entity.update({RAW_TRAJECTORY_TRAJ_ATTR_NAME: json.dumps(new_trajectory), \
+                   RAW_TRAJECTORY_DRAWN_ATTR_NAME: drawn_by_hand})
+    ds.put(entity)
+    
+def get_raw_trajectories():
+    ds = get_client()
+    query = ds.query(kind=RAW_TRAJECTORY_TABLE)
+    out = []
+    for traj in map(from_datastore, query.fetch()):
+        out.append(json.loads(traj[RAW_TRAJECTORY_TRAJ_ATTR_NAME]))
+    return out
 
 def get_all_locations_from_source_id(source_id):
     out = []
