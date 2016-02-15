@@ -26,6 +26,8 @@ from bookshelf.model_datastore import store_partitioned_trajectories
 from traclus_impl.coordination import the_whole_enchilada
 import polypaths_planar_override
 import math
+from traclus_impl.parameter_estimation import TraclusSimulatedAnnealingState
+from traclus_impl.parameter_estimation import TraclusSimulatedAnnealer
 
 COORDINATE_SCALER = 1.0
 
@@ -58,6 +60,17 @@ def filter_trajectories():
     model_datastore.store_filtered_trajectories(filtered_trajectories=filtered_trajectories)
     return
 
+def run_simulated_annealing_for_epsilon(initial_epsilon, num_steps, max_epsilon_jump):
+    all_raw_point_lists = get_normalized_datastore_trajectories()
+    initial_state = TraclusSimulatedAnnealingState(input_trajectories=all_raw_point_lists, \
+                                                epsilon=initial_epsilon)
+    traclus_sim_anneal = TraclusSimulatedAnnealer(initial_state=initial_state, \
+                                                      max_epsilon_step_change=max_epsilon_jump)
+    traclus_sim_anneal.updates = max(10, num_steps)
+    traclus_sim_anneal.steps = num_steps
+    best_state, best_energy = traclus_sim_anneal.anneal()
+    return best_state.get_epsilon()
+
 def create_line_seg(start, end):
     return LineSegment.from_points([Point(start[0], start[1]), Point(end[0], end[1])])
 
@@ -85,11 +98,9 @@ def remove_points_too_close(point_list):
             
     return out
             
-
-def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_cluster, \
-                            min_vertical_lines, min_prev_dist):
+def get_normalized_datastore_trajectories():
     raw_trajectories = model_datastore.get_all_location_updates()
-    
+        
     print "HERE ARE THE RAW TRAJECTORIES: \n" + str(raw_trajectories)
         
     def dict_list_to_point_list(dict_list):
@@ -134,11 +145,15 @@ def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_clus
         return map(scale_coordinates, traj_list)
         
     all_raw_point_lists = get_scaled_trajs(all_raw_point_lists, COORDINATE_SCALER)
-    
     all_raw_point_lists = map(remove_points_too_close, all_raw_point_lists)
-    
     all_raw_point_lists = filter(lambda x: len(x) >= 2, all_raw_point_lists)
     
+    return all_raw_point_lists
+
+
+def run_the_whole_enchilada(epsilon, min_neighbors, min_num_trajectories_in_cluster, \
+                            min_vertical_lines, min_prev_dist): 
+    all_raw_point_lists = get_normalized_datastore_trajectories()   
     print "HERE ARE THE POINT LISTS WERE PASSING IN TO TRACLUS: " + str(all_raw_point_lists)
         
     print "ABOUT to run the whole enchilada with a min neighbors of " + str(min_neighbors)

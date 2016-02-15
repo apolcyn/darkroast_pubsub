@@ -26,9 +26,14 @@
 	<h2>Here are the locations:</h2>
 	<button type="button" onclick="advanced();">Filter</button>
 	<input type="text" id="advancedParams"/>
+	<br>
+	<button type="button" onclick="showRawTrajectories()">Show Raw Trajcetories</button>
+	<br>
 	<button type="button" onclick="showPartitioned()">Show Partitioning</button>
+	<br>
 	<button type="button" onclick="showClusters()">Show Clusters</button>
-	<button type="button" onclick="getFiltered()">Get Filtered Trajectories</button>
+	<br>
+	<button type="button" onclick="showFiltered()">Get Filtered Trajectories</button>
 	
 	<br><br><br>
 	<button type="button" onclick="runTraclus()">Run Traclus</button><br><br>
@@ -46,6 +51,17 @@
 	
 	<input type="text" id="min_prev_dist" />
 	<label for=min_prev_dist>min_prev_dist</label><br>
+	
+	<br><br><br>
+	<button type="button" onclick="runSimulatedAnnealing()">Run Simulated Annealing</button><br>
+	<input type="text" id="simulated_annealing_epsilon" />
+	<label for=epsilon>epsilon</label><br>
+	
+	<input type="text" id="num_steps" />
+	<label for=num_steps>"num_steps"</label><br>
+	
+	<input type="text" id="max_epsilon_jump" />
+	<label for="max_epsilon_jump">"max_epsilon_jump"</label><br>
 	
 	<div id="locationUpdates" />
 	<div id="partitions" />

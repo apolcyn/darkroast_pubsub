@@ -12,6 +12,26 @@ function initMap() {
 	displayPoints();
 }
 
+function showRawTrajectories() {
+	$.get("/books/locations", function(data, status) {
+		displayPoints("#000000", data);
+	});
+}
+
+function runSimulatedAnnealing() {
+	var epsilon = $("#simulated_annealing_epsilon").val();
+	var num_steps = $("#num_steps").val();
+	var max_epsilon_jump = $("#max_epsilon_jump").val();
+	
+	var url = "/books/simulated_annealing?epsilon=" + epsilon
+	 + "&num_steps=" + num_steps
+	 + "&max_epsilon_jump=" + max_epsilon_jump;
+	
+	$.get(url, function(data, status) {
+		alert("Ran Simulated Annealing. Server response: " + data['best_epsilon']);
+	});
+}
+
 function runTraclus() {
 	var epsilon = $("#epsilon").val();
 	var min_neighbors = $("#min_neighbors").val();

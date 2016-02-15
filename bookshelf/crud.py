@@ -64,6 +64,17 @@ def get_location_updates():
     print "Just enqueued a task to filter trajectories BEEF."
     return jsonify(unfiltered)
 
+@crud.route("/simulated_annealing")
+def simulated_annealing_for_epsilon():
+    epsilon = float(request.args.get('epsilon'))
+    num_steps = int(request.args.get('num_steps'))
+    max_epsilon_jump = float(request.args.get('max_epsilon_jump'))
+    
+    best_epsilon = tasks.run_simulated_annealing_for_epsilon(initial_epsilon=epsilon, \
+                                              num_steps=num_steps, \
+                                              max_epsilon_jump=max_epsilon_jump)
+    return jsonify({"best_epsilon": best_epsilon})
+
 @crud.route("/run_traclus")
 def run_traclus():
     epsilon = float(request.args.get('epsilon'))
