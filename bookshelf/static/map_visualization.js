@@ -48,14 +48,14 @@ function uploadDrawnPath() {
 		jsonPath.push(latlng);
 	}
 		
-	$.post("/books/upload_drawn_path", {'path': jsonPath.toString()}
+	$.post("/books/upload_drawn_path", {'path': JSON.stringify(jsonPath)}
 	        , function(data, status) {
 		alert("Path uploaded: server response data: " + data);
 	});
 }
 
 function showRawTrajectories() {
-	$.get("/books/locations", function(data, status) {
+	$.get("/books/raw_trajectories", function(data, status) {
 		displayPoints("#000000", data);
 	});
 }
