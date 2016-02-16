@@ -37,6 +37,23 @@ function addLatLng(event) {
   });
 }
 
+function uploadDrawnPath() {		
+	var jsonPath = [];
+	
+	var arr = poly.getPath().getArray();
+	
+	for(var i in arr) {
+		latlng = {'lat': arr[i].lat()
+				, 'lng': arr[i].lng()};
+		jsonPath.push(latlng);
+	}
+		
+	$.post("/books/upload_drawn_path", {'path': jsonPath.toString()}
+	        , function(data, status) {
+		alert("Path uploaded: server response data: " + data);
+	});
+}
+
 function showRawTrajectories() {
 	$.get("/books/locations", function(data, status) {
 		displayPoints("#000000", data);

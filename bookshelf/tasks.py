@@ -106,7 +106,8 @@ def get_normalized_datastore_trajectories():
     def dict_list_to_point_list(dict_list):
         return map(lambda x: Point(x['lat'], x['lng']), dict_list)
     
-    normal_traj_lists = map(lambda x: x[0], raw_trajectories.values())
+    normal_traj_lists = model_datastore.get_raw_trajectories()
+    #map(lambda x: x[0], raw_trajectories.values())
     
     print "\n\nHERE ARE THE NORMALIZED FORMAT TRAJECTORIES: \n" + str(normal_traj_lists)
     print "\n LENGTH OF NORMAL TRAJ LIST IS " + str(len(normal_traj_lists))

@@ -15,6 +15,8 @@
 from bookshelf import get_model, oauth2, storage, tasks, model_datastore
 from flask import Blueprint, current_app, redirect, render_template, request, \
     session, url_for, jsonify
+import json
+from polypaths_planar_override import Point
 
 
 crud = Blueprint('crud', __name__)
@@ -63,6 +65,19 @@ def migrate_locations():
             model_datastore.store_new_trajectory_update(new_trajectory=traj, \
                                                         drawn_by_hand=False)
     return "Stored em"
+
+@crud.route("/upload_drawn_path", methods=['POST'])
+def upload_drawn_path():
+    def validate(coord):
+        if coord['lat'] == None or coord['lng'] == None:
+            raise ValueError
+        return coord
+    
+    path = map(validate, json.loads(request.values.get('path')))  
+    
+    model_datastore.store_new_trajectory_update(new_trajectory=path, \
+                                                drawn_by_hand=True)
+    return "just uploaded new trajectory"
 
 @crud.route("/raw_trajectories")
 def get_raw_trajectories():
