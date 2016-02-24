@@ -28,6 +28,12 @@ import polypaths_planar_override
 import math
 from traclus_impl.parameter_estimation import TraclusSimulatedAnnealingState
 from traclus_impl.parameter_estimation import TraclusSimulatedAnnealer
+from traclus_impl.processed_trajectory_connecting import \
+get_find_other_nearby_neighbors_func, FilteredTrajectory,\
+    compute_graph_component_ids, find_shortest_connection
+
+from traclus_impl.processed_trajectory_connecting import \
+build_point_graph
 
 COORDINATE_SCALER = 1.0
 
@@ -51,6 +57,36 @@ def get_trajectory_filter_queue():
     return psq.Queue(
         client, 'trajectory_filter', extra_context=current_app.app_context)
 # [END get_books_queue]
+
+def construct_graph_from_processed_trajectories(filtered_trajectories, \
+                                                max_distance_between_connected_different_trajs):
+    other_neighbors_func = \
+    get_find_other_nearby_neighbors_func(max_distance_between_connected_different_trajs)
+    
+    cur_index = 0
+    graph_input = []
+    for traj in filtered_trajectories:
+        point_traj = map(lambda x: Point(x['lat'], x['lng']), traj)
+        graph_input.append(FilteredTrajectory(point_traj, cur_index))
+        cur_index += 1
+    
+    def dummy_find_other_neighbors_func(pt_node, pt_graph):
+        return []
+    pt_graph = build_point_graph(graph_input, other_neighbors_func)
+    compute_graph_component_ids(pt_graph=pt_graph, \
+                                find_other_neighbors_func=dummy_find_other_neighbors_func)
+    return pt_graph
+
+def compute_shortest_path_between_points(pt_graph, start_pt, end_pt, \
+                                         max_dist_to_existing_pt):
+    shortest_path, shortest_distance = find_shortest_connection(start_pt=start_pt, \
+                                    end_pt=end_pt, \
+                                    pt_graph=pt_graph, \
+                                    max_dist_to_existing_pt=max_dist_to_existing_pt)
+    if shortest_path == None and shortest_distance == None:
+        return None, None
+    
+    return map(lambda pt: {'lat': pt.x, 'lng': pt.y}, shortest_path), shortest_distance
 
 def filter_trajectories():
     print "Entered function to filter trajectories: BEEF"

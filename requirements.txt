@@ -10,5 +10,5 @@ six==1.10.0
 requests[security]==2.9.1
 honcho==0.6.6
 psq==0.2.1
-traclus_impl==0.8.1
+traclus_impl==0.8.3
 polypaths_planar_override==0.4

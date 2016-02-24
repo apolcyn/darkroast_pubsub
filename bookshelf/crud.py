@@ -148,7 +148,28 @@ def list_mine():
         "list.html",
         books=books,
         next_page_token=next_page_token)
-
+    
+@crud.route("/build_graph_and_find_path")
+def build_graph_and_find_path():
+    start_pt_dict = json.loads(request.args.get('start_pt'))
+    end_pt_dict = json.loads(request.args.get('end_pt'))
+    max_inter_traj_distance = float(request.args.get('max_inter_traj_distance'))
+    max_dist_to_existing_pt = float(request.args.get('max_dist_to_existing_pt'))
+    
+    start_pt = Point(start_pt_dict['lat'], start_pt_dict['lng'])
+    end_pt = Point(end_pt_dict['lat'], end_pt_dict['lng'])
+    
+    filtered_trajectories = model_datastore.get_filtered_trajectories()
+    pt_graph = tasks.construct_graph_from_processed_trajectories(filtered_trajectories, \
+                                                                 max_inter_traj_distance)
+    shortest_path, shortest_dist = tasks.compute_shortest_path_between_points(pt_graph=pt_graph, \
+                                                               start_pt=start_pt, \
+                                                               end_pt=end_pt, \
+                                                               max_dist_to_existing_pt=max_dist_to_existing_pt)
+    if shortest_path == None:
+        return jsonify({'path_found': False})
+    else:
+        return jsonify({'path_found': True, 'shortest_path': shortest_path})
 
 @crud.route('/<id>')
 def view(id):

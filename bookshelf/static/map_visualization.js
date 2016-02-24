@@ -21,7 +21,7 @@ function initMap() {
 	map.addListener('click', addLatLng);
 }
 
-//Handles click events on a map, and adds a new point to the Polyline.
+// Handles click events on a map, and adds a new point to the Polyline.
 function addLatLng(event) {
   var path = poly.getPath();
 
@@ -57,6 +57,33 @@ function uploadDrawnPath() {
 function showRawTrajectories() {
 	$.get("/books/raw_trajectories", function(data, status) {
 		displayPoints("#000000", data);
+	});
+}
+
+function computeShortestPathBetweenPoints() {
+	var max_inter_traj_distance = $("#max_inter_traj_distance").val();
+	var max_dist_to_existing_pt = $("#max_dist_to_existing_pt").val();
+	
+	var path = poly.getPath().getArray();
+	
+	var start_pt = {'lat': path[0].lat(), 'lng': path[0].lng()};
+	var end_pt = {'lat': path[1].lat(), 'lng': path[1].lng()};
+	
+	$.get("/books/build_graph_and_find_path?start_pt=" + JSON.stringify(start_pt)
+			+ "&end_pt=" + JSON.stringify(end_pt) 
+			+ "&max_inter_traj_distance=" + max_inter_traj_distance
+			+ "&max_dist_to_existing_pt=" + max_dist_to_existing_pt
+	, function(data, status) {
+		if(!data['path_found']) {
+			alert("Path not found");
+		}
+		else {
+			var displayLine = new google.maps.Polyline({
+				path : data['shortest_path'],
+					strokeColor : "#FF0000"
+			});
+			displayLine.setMap(map);
+		}
 	});
 }
 
