@@ -56,6 +56,22 @@ def list():
 def show_map():
     return render_template("seemap.html")
 
+@crud.route("/get_directions")
+def get_directions():
+    start_lat = float(request.args.get("start_lat"))
+    start_lng = float(request.args.get("start_lng"))
+    end_lat = float(request.args.get("end_lat"))
+    end_lng = float(request.args.get("end_lng"))
+    
+    start_pt = json.dumps({'lat': start_lat, 'lng': start_lng})
+    end_pt = json.dumps({'lat': end_lat, 'lng': end_lng})
+    query_str = "?start_pt=" + start_pt + \
+    "&end_pt=" + end_pt + \
+    "&max_inter_traj_distance=" + str(0.001) + \
+    "&max_dist_to_existing_pt=" + str(0.0001)
+    
+    return redirect("/books/build_graph_and_find_path" + query_str)
+
 @crud.route("/migrate_locations")
 def migrate_locations():
     all_locations = model_datastore.get_all_location_updates()
