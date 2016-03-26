@@ -20,11 +20,10 @@ from gcloud import pubsub
 import psq
 import requests
 import model_datastore
-from polypaths_planar_override import LineSegment
-from polypaths_planar_override import Point
+from traclus_impl.geometry import LineSegment
+from traclus_impl.geometry import Point
 from bookshelf.model_datastore import store_partitioned_trajectories
 from traclus_impl.coordination import the_whole_enchilada
-import polypaths_planar_override
 import math
 from traclus_impl.parameter_estimation import TraclusSimulatedAnnealingState
 from traclus_impl.parameter_estimation import TraclusSimulatedAnnealer
@@ -108,7 +107,7 @@ def run_simulated_annealing_for_epsilon(initial_epsilon, num_steps, max_epsilon_
     return best_state.get_epsilon()
 
 def create_line_seg(start, end):
-    return LineSegment.from_points([Point(start[0], start[1]), Point(end[0], end[1])])
+    return LineSegment.from_tuples(start, end)
 
 def remove_successive_points_at_same_spots(point_list):
     p_iter = iter(point_list)
@@ -128,7 +127,7 @@ def remove_points_too_close(point_list):
     out = [prev]
     
     for p in p_iter:
-        if (p - prev).length2 > 0.0:
+        if prev.distance_to(p) > 0.0:
             out.append(p)
             prev = p
             
@@ -143,8 +142,7 @@ def get_normalized_datastore_trajectories():
         return map(lambda x: Point(x['lat'], x['lng']), dict_list)
     
     normal_traj_lists = model_datastore.get_raw_trajectories()
-    #map(lambda x: x[0], raw_trajectories.values())
-    
+        
     print "\n\nHERE ARE THE NORMALIZED FORMAT TRAJECTORIES: \n" + str(normal_traj_lists)
     print "\n LENGTH OF NORMAL TRAJ LIST IS " + str(len(normal_traj_lists))
     
@@ -173,9 +171,7 @@ def get_normalized_datastore_trajectories():
         return min_dist
             
     print "min dist is " + str(get_min_dist())
-    
-    polypaths_planar_override.set_epsilon(0.000000001)
-    
+        
     def get_scaled_trajs(traj_list, scale):
         def scale_coordinates(point_list):
             return map(lambda p: Point(p.x * scale, p.y * scale), point_list)
